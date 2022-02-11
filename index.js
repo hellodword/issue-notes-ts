@@ -60339,6 +60339,38 @@ function buildArchiveHeader(filename) {
     }
     return headArchives;
 }
+async function deleteArchive(args) {
+    console.log('deleteArchive', args.filename);
+    const filepath = `${BASE_PATH_POSTS_ARCHIVES}/${PREFIX}-${args.filename}.md`;
+    await getPathSha({
+        rest: args.rest,
+        owner: args.owner,
+        repo: args.repo,
+        sha: BRANCH_NAME,
+        path: filepath,
+    })
+        .then(async (sha) => {
+        console.log('deleteArchive', 'getPathSha', sha);
+        if (!sha || !sha.sha || sha.sha === '') {
+            return;
+        }
+        await args.rest.repos
+            .deleteFile({
+            owner: args.owner,
+            repo: args.repo,
+            branch: BRANCH_NAME,
+            path: filepath,
+            message: `delete archive ${sha.name} via github-actions${'\n\n'}${buildRawLink(args)}`,
+            sha: sha.sha,
+        })
+            .then((response) => {
+            console.log('deleteArchive', 'deleteFile', response.status);
+        });
+    })
+        .catch((reason) => {
+        console.log('deleteArchive', 'getPathSha', reason);
+    });
+}
 async function deletePost(args) {
     console.log('deletePost', 'issueNumber', args.issueNumber, 'issueCommentId', args.issueCommentId);
     // issue 5 的所有都存在一个文件夹 _posts/5/1970-01-01-5-123456.md
@@ -60781,15 +60813,27 @@ ${result.body}
             }
             console.log('delete', result.del[i]);
             const match = /(\/(\d+)-(\d+)\.html)|(\/(\d+)#issuecomment-(\d+)$)/.exec(result.del[i]);
-            const issueNumber = parseInt(match[2] || match[5]);
-            const issueCommentId = parseInt(match[3] || match[6]);
-            await deletePost({
-                rest: args.rest,
-                owner: args.owner,
-                repo: args.repo,
-                issueNumber: issueNumber,
-                issueCommentId: issueCommentId,
-            });
+            if (match.length > 0) {
+                const issueNumber = parseInt(match[2] || match[5]);
+                const issueCommentId = parseInt(match[3] || match[6]);
+                await deletePost({
+                    rest: args.rest,
+                    owner: args.owner,
+                    repo: args.repo,
+                    issueNumber: issueNumber,
+                    issueCommentId: issueCommentId,
+                });
+            }
+            else {
+                // delete archive
+                const filename = stringSanitizer.sanitize(result.del[i]);
+                await deleteArchive({
+                    rest: args.rest,
+                    owner: args.owner,
+                    repo: args.repo,
+                    filename: filename,
+                });
+            }
         }
     }
     console.log('result.archive', result.archive);
