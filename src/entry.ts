@@ -78,9 +78,6 @@ export async function entry(args: {
   console.log(yargs(split('curl --op')).parse());
   console.log(contentDisposition('attachment; filename="filename.jpg"'));
   console.log(moment(new Date()));
-  axios.get('https://taobao.com/robots.txt').then((r) => {
-    console.log(r.data);
-  });
 }
 
 export async function convertEntry(args: {
