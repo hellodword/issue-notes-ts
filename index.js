@@ -60852,6 +60852,8 @@ archives: ${buildArchiveHeader(result.archive[i].filename)}
     };
 }
 async function archiveEntry(args) {
+    const issueNumber = args.context.payload.issue.number;
+    const issueCommentId = args.context.eventName === 'issues' ? 0 : args.context.payload.comment.id;
     console.log('archiveEntry', args.engine, args.filename);
     const contentArchive = require$$0__default$2["default"].readFileSync(`./archives/${args.engine}/index.html`);
     const pathArchive = `${BASE_PATH_ARCHIVES}/${args.engine}/${args.filename}.html`;
@@ -60869,7 +60871,12 @@ async function archiveEntry(args) {
             repo: args.context.repo.repo,
             branch: BRANCH_NAME,
             path: pathArchive,
-            message: `${sha.sha ? 'update' : 'add'} archive[${args.engine}] ${args.filename}.html via github-actions${'\n\n'}${args.link}`,
+            message: `${sha.sha ? 'update' : 'add'} archive[${args.engine}] ${args.filename}.html via github-actions${'\n\n'}${buildRawLink({
+                owner: args.context.repo.owner,
+                repo: args.context.repo.repo,
+                issueNumber: issueNumber,
+                issueCommentId: issueCommentId,
+            })}${'\n'}${args.link}`,
             content: contentArchive.toString('base64'),
             sha: sha.sha ? sha.sha : '',
         })
