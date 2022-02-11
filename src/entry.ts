@@ -265,6 +265,51 @@ function buildArchiveHeader(filename: string) {
   return headArchives;
 }
 
+async function deleteArchive(args: {
+  rest: Octokit;
+  owner: string;
+  repo: string;
+  issueNumber: number;
+  issueCommentId: number;
+  filename: string;
+}) {
+  console.log('deleteArchive', args.filename);
+
+  const filepath = `${BASE_PATH_POSTS_ARCHIVES}/${PREFIX}-${args.filename}.md`;
+
+  await getPathSha({
+    rest: args.rest,
+    owner: args.owner,
+    repo: args.repo,
+    sha: BRANCH_NAME,
+    path: filepath,
+  })
+    .then(async (sha) => {
+      console.log('deleteArchive', 'getPathSha', sha);
+      if (!sha || !sha.sha || sha.sha === '') {
+        return;
+      }
+
+      await args.rest.repos
+        .deleteFile({
+          owner: args.owner,
+          repo: args.repo,
+          branch: BRANCH_NAME,
+          path: filepath,
+          message: `delete archive ${
+            sha.name
+          } via github-actions${'\n\n'}${buildRawLink(args)}`,
+          sha: sha.sha,
+        })
+        .then((response) => {
+          console.log('deleteArchive', 'deleteFile', response.status);
+        });
+    })
+    .catch((reason) => {
+      console.log('deleteArchive', 'getPathSha', reason);
+    });
+}
+
 async function deletePost(args: {
   rest: Octokit;
   owner: string;
@@ -334,14 +379,6 @@ function yargsArgToString(key: any) {
     return key[0];
   }
   return undefined;
-}
-
-async function deleteArchive(args: {
-  rest: Octokit;
-  owner: string;
-  repo: string;
-}) {
-  console.log(args);
 }
 
 async function createPost(args: {
@@ -840,15 +877,28 @@ ${result.body}
       const match = /(\/(\d+)-(\d+)\.html)|(\/(\d+)#issuecomment-(\d+)$)/.exec(
         result.del[i],
       );
-      const issueNumber = parseInt(match[2] || match[5]);
-      const issueCommentId = parseInt(match[3] || match[6]);
-      await deletePost({
-        rest: args.rest,
-        owner: args.owner,
-        repo: args.repo,
-        issueNumber: issueNumber,
-        issueCommentId: issueCommentId,
-      });
+      if (match && match.length > 0) {
+        const issueNumber = parseInt(match[2] || match[5]);
+        const issueCommentId = parseInt(match[3] || match[6]);
+        await deletePost({
+          rest: args.rest,
+          owner: args.owner,
+          repo: args.repo,
+          issueNumber: issueNumber,
+          issueCommentId: issueCommentId,
+        });
+      } else {
+        // delete archive
+        const filename = sanitize(result.del[i]);
+        await deleteArchive({
+          rest: args.rest,
+          owner: args.owner,
+          repo: args.repo,
+          issueNumber: args.issueNumber,
+          issueCommentId: args.issueCommentId,
+          filename: filename,
+        });
+      }
     }
   }
 
