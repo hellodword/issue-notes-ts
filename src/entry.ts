@@ -529,16 +529,25 @@ async function createPost(args: {
                   console.log('yargs.handler', 'archive', '!isURL', argv.link);
                   return;
                 }
+                let engine = [];
+                if (argv.engine === 'string') {
+                  engine = [argv.engine];
+                } else if (argv.engine && argv.engine.length) {
+                  for (let j = 0; j < argv.engine.length; j++) {
+                    engine.push(argv.engine[j]);
+                  }
+                }
+
+                if (!engine || engine.length === 0) {
+                  engine = ['all']; // default
+                }
 
                 result.archive.push({
                   link: argv.link,
                   title: yargsArgToString(argv.title),
                   author: yargsArgToString(argv.author),
                   date: yargsArgToString(argv.date),
-                  engine:
-                    typeof argv.engine === 'string'
-                      ? [argv.engine]
-                      : argv.engine,
+                  engine: engine,
                 });
               },
             })
