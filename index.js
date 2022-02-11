@@ -60813,7 +60813,7 @@ ${result.body}
             }
             console.log('delete', result.del[i]);
             const match = /(\/(\d+)-(\d+)\.html)|(\/(\d+)#issuecomment-(\d+)$)/.exec(result.del[i]);
-            if (match.length > 0) {
+            if (match && match.length > 0) {
                 const issueNumber = parseInt(match[2] || match[5]);
                 const issueCommentId = parseInt(match[3] || match[6]);
                 await deletePost({
@@ -60831,6 +60831,8 @@ ${result.body}
                     rest: args.rest,
                     owner: args.owner,
                     repo: args.repo,
+                    issueNumber: args.issueNumber,
+                    issueCommentId: args.issueCommentId,
                     filename: filename,
                 });
             }
