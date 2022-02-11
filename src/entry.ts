@@ -47,6 +47,8 @@ import { BuildVisitor } from 'unist-util-visit/complex-types';
 import { detectFile, detectLanguage } from './detect';
 import { sha1 } from './crypto';
 
+import fs from 'fs';
+
 export const BRANCH_NAME = 'gh-pages';
 export const BASE_PATH_POSTS_NORMAL = '_posts';
 export const BASE_PATH_POSTS_ARCHIVES = '_posts/archives';
@@ -921,4 +923,54 @@ archives: ${buildArchiveHeader(result.archive[i].filename)}
   return {
     archive: result.archive,
   };
+}
+
+export async function archiveEntry(args: {
+  context: Context;
+  github: InstanceType<typeof GitHub>;
+  core?: typeof core;
+  exec?: typeof exec;
+  glob?: typeof glob;
+  io?: typeof io;
+  engine: string;
+  filename: string;
+  link: string;
+}) {
+  console.log('archiveEntry', args.engine, args.filename);
+  const contentArchive = fs.readFileSync(
+    `./archives/${args.engine}/index.html`,
+  );
+
+  const pathArchive = `${BASE_PATH_ARCHIVES}/${args.engine}/${args.filename}.html`;
+
+  await getPathSha({
+    rest: args.github.rest as Octokit,
+    owner: args.context.repo.owner,
+    repo: args.context.repo.repo,
+    sha: BRANCH_NAME,
+    path: pathArchive,
+  })
+    .then(async (sha) => {
+      await args.github.rest.repos
+        .createOrUpdateFileContents({
+          owner: args.context.repo.owner,
+          repo: args.context.repo.repo,
+          branch: BRANCH_NAME,
+          path: pathArchive,
+          message: `${sha.sha ? 'update' : 'add'} archive[${args.engine}] ${
+            args.filename
+          }.html via github-actions${'\n\n'}${args.link}`,
+          content: contentArchive.toString('base64'),
+          sha: sha.sha ? sha.sha : '',
+        })
+        .then((response) => {
+          console.log(`upload archive[${args.engine}] post`, response.status);
+        })
+        .catch((reason) => {
+          console.log(`upload archive[${args.engine}] post`, reason);
+        });
+    })
+    .catch((reason) => {
+      console.log(reason);
+    });
 }
