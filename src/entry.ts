@@ -532,10 +532,10 @@ async function createPost(args: {
                   return;
                 }
                 let engine = [];
-                if (argv.engine === 'string') {
+                if (typeof argv.engine === 'string') {
                   engine = [argv.engine];
-                } else if (argv.engine && argv.engine.length) {
-                  for (let j = 0; j < argv.engine.length; j++) {
+                } else if (argv.engine && (argv.engine as any).length) {
+                  for (let j = 0; j < (argv.engine as any).length; j++) {
                     engine.push(argv.engine[j]);
                   }
                 }
