@@ -936,6 +936,10 @@ export async function archiveEntry(args: {
   filename: string;
   link: string;
 }) {
+  const issueNumber = args.context.payload.issue.number;
+  const issueCommentId =
+    args.context.eventName === 'issues' ? 0 : args.context.payload.comment.id;
+
   console.log('archiveEntry', args.engine, args.filename);
   const contentArchive = fs.readFileSync(
     `./archives/${args.engine}/index.html`,
@@ -959,7 +963,12 @@ export async function archiveEntry(args: {
           path: pathArchive,
           message: `${sha.sha ? 'update' : 'add'} archive[${args.engine}] ${
             args.filename
-          }.html via github-actions${'\n\n'}${args.link}`,
+          }.html via github-actions${'\n\n'}${buildRawLink({
+            owner: args.context.repo.owner,
+            repo: args.context.repo.repo,
+            issueNumber: issueNumber,
+            issueCommentId: issueCommentId,
+          })}${'\n'}${args.link}`,
           content: contentArchive.toString('base64'),
           sha: sha.sha ? sha.sha : '',
         })
