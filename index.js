@@ -60851,6 +60851,39 @@ archives: ${buildArchiveHeader(result.archive[i].filename)}
         archive: result.archive,
     };
 }
+async function archiveEntry(args) {
+    console.log('archiveEntry', args.engine, args.filename);
+    const contentArchive = require$$0__default$2["default"].readFileSync(`./archives/${args.engine}/index.html`);
+    const pathArchive = `${BASE_PATH_ARCHIVES}/${args.engine}/${args.filename}.html`;
+    await getPathSha({
+        rest: args.github.rest,
+        owner: args.context.repo.owner,
+        repo: args.context.repo.repo,
+        sha: BRANCH_NAME,
+        path: pathArchive,
+    })
+        .then(async (sha) => {
+        await args.github.rest.repos
+            .createOrUpdateFileContents({
+            owner: args.context.repo.owner,
+            repo: args.context.repo.repo,
+            branch: BRANCH_NAME,
+            path: pathArchive,
+            message: `${sha.sha ? 'update' : 'add'} archive[${args.engine}] ${args.filename}.html via github-actions${'\n\n'}${args.link}`,
+            content: contentArchive.toString('base64'),
+            sha: sha.sha ? sha.sha : '',
+        })
+            .then((response) => {
+            console.log(`upload archive[${args.engine}] post`, response.status);
+        })
+            .catch((reason) => {
+            console.log(`upload archive[${args.engine}] post`, reason);
+        });
+    })
+        .catch((reason) => {
+        console.log(reason);
+    });
+}
 
 exports.ARCHIVE_ENGINES = ARCHIVE_ENGINES;
 exports.BASE_PATH_ARCHIVES = BASE_PATH_ARCHIVES;
@@ -60860,6 +60893,7 @@ exports.BASE_PATH_POSTS_ARCHIVES = BASE_PATH_POSTS_ARCHIVES;
 exports.BASE_PATH_POSTS_NORMAL = BASE_PATH_POSTS_NORMAL;
 exports.BRANCH_NAME = BRANCH_NAME;
 exports.PREFIX = PREFIX;
+exports.archiveEntry = archiveEntry;
 exports.convertEntry = convertEntry;
 exports.entry = entry;
 //# sourceMappingURL=index.js.map
