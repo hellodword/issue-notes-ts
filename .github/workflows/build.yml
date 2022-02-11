@@ -15,6 +15,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Use Node.js 16.x
       uses: actions/setup-node@v2
       with:
@@ -27,3 +29,20 @@ jobs:
       with:
         name: 16.x
         path: dist/
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        ref: 'release'
+        path: 'release'
+    - name: sync
+      run: |
+        export GIT_COMMIT_MESSAGE=$(git show -s --format=%s HEAD)
+        echo "${GIT_COMMIT_MESSAGE}"
+        cp dist/index* release/
+        cd release
+        git config user.name github-actions[bot]
+        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+        git add index*
+        git commit -m "${GIT_COMMIT_MESSAGE}" || exit 0
+        git push -u origin release
