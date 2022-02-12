@@ -4,7 +4,7 @@
 import { isURL } from './helper';
 
 // import { remark } from 'remark';
-// import { Root } from 'mdast';
+import { Text, InlineCode } from 'mdast';
 
 import { Node } from 'unist';
 import { Parent } from 'unist-util-visit-parents';
@@ -118,39 +118,57 @@ function only(tree: Node, key: string) {
 }
 
 function onlyTitleAndLink(tree: Node) {
+  let noInlineCommonds = true;
+  let other = 0;
   const texts: string[] = [];
   visit(tree, (node) => {
     if ((node as any).isInlineCommand) {
+      noInlineCommonds = false;
       return;
     }
     switch (node.type) {
-      case 'heading': {
-        texts.push(getText(node as Parent));
+      case 'inlineCode': {
+        texts.push((node as InlineCode).value);
+        break;
+      }
+      case 'text': {
+        texts.push((node as Text).value);
+        break;
+      }
+      case 'root': {
         break;
       }
       case 'paragraph': {
-        texts.push(getText(node as Parent));
+        break;
+      }
+      case 'heading': {
+        break;
+      }
+      default: {
+        other++;
         break;
       }
     }
   });
 
-  if (texts.length === 2) {
+  if (other === 0 && texts.length === 2) {
     if (isURL.test(texts[0]) && texts[1] && texts[1] !== '') {
       return {
         title: texts[1],
         link: texts[0],
+        noInlineCommonds: noInlineCommonds,
       };
     }
     if (isURL.test(texts[1]) && texts[0] && texts[0] !== '') {
       return {
         title: texts[0],
         link: texts[1],
+        noInlineCommonds: noInlineCommonds,
       };
     }
   }
 
-  return undefined;
+  return { noInlineCommonds: noInlineCommonds };
 }
 
 function getText(tree: Node) {

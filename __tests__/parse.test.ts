@@ -72,7 +72,7 @@ describe('only', () => {
     expect(only(root, 'markChildren')).toBe(false);
   });
 });
-describe('only', () => {
+describe('onlyTitleAndLink', () => {
   test('true', () => {
     const root = u('root', [
       u('heading', [u('text', 'text')]),
@@ -92,11 +92,20 @@ describe('only', () => {
   test('false', () => {
     const root = u('root', [
       u('heading', [u('text', 'text')]),
-      u('paragraph', [u('text', 'https://a.b')]),
+      u('paragraph', [u('inlineCode', 'test'), u('text', 'https://a.b')]),
     ]);
     markChildren(root, 'isInlineCommand');
     const r = onlyTitleAndLink(root);
-    expect(r).toBeUndefined();
+    expect(r.link).toBeUndefined();
+  });
+  test('false', () => {
+    const root = u('root', [
+      u('heading', [u('text', 'text')]),
+      u('paragraph', [u('inlineCode', 'test'), u('text', 'https://a.b')]),
+      u('html', '<!-- -->'),
+    ]);
+    const r = onlyTitleAndLink(root);
+    expect(r.link).toBeUndefined();
   });
 });
 

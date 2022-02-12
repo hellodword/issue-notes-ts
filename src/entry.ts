@@ -49,6 +49,7 @@ import { detectFile, detectLanguage } from './detect';
 import { sha1 } from './crypto';
 
 import fs from 'fs';
+import { inspect } from 'unist-util-inspect';
 
 export const BRANCH_NAME = 'gh-pages';
 export const BASE_PATH_POSTS_NORMAL = '_posts';
@@ -600,6 +601,7 @@ async function createPost(args: {
       ) {
         continue;
       }
+      console.log('image', result.img[i].link);
       const imgNode = u('image', {
         title: null,
         alt: result.img[i].link,
@@ -610,12 +612,15 @@ async function createPost(args: {
           responseType: 'arraybuffer',
         })
         .then(async (response) => {
-          console.log(response);
+          console.log('image', 'get', response.status);
           let ext = await detectFile(response.data);
           if (!ext || ext === '') {
             ext = 'jpg';
           }
+          console.log('image', 'ext', ext);
+
           const sha1Hex = sha1(response.data);
+          console.log('image', 'sha1Hex', sha1Hex);
           // 上传到 assets/img/${sha1Hex}.${ext}
           await args.rest.repos
             .createOrUpdateFileContents({
@@ -629,11 +634,17 @@ async function createPost(args: {
               content: response.data.toString('base64'),
             })
             .then((response) => {
+              console.log(
+                'image',
+                'createOrUpdateFileContents',
+                response.status,
+              );
               if (response.status >= 200 && response.status < 300) {
                 imgNode.url = `https://raw.githubusercontent.com/${args.owner}/${args.repo}/${BRANCH_NAME}/${BASE_PATH_PICTURE}/${sha1Hex}.${ext}`;
               }
             })
             .catch((reason: RequestError) => {
+              console.log('image', 'createOrUpdateFileContents', reason.status);
               // 已经存在
               if (
                 reason &&
@@ -645,11 +656,13 @@ async function createPost(args: {
             });
         })
         .catch((reason) => {
-          console.log(reason);
+          console.log('image', 'get', reason);
         })
         .finally(() => {
+          console.log('imgNode', inspect(imgNode));
           const modifier = function (node, index, parent) {
-            if (node.type === result.img[i].node) {
+            if (node === result.img[i].node) {
+              console.log('image', 'modifier');
               parent.children.splice(index, 1, imgNode);
               return index + 1;
             }
@@ -712,7 +725,9 @@ async function createPost(args: {
 
           // 尝试从 fileName 中获取 lang
           if (!lang || lang === '') {
-            lang = (fileName || '').match(/[^.]+$/)[0];
+            lang = (fileName || '').match(/[^.]+$/)
+              ? (fileName || '').match(/[^.]+$/)[0]
+              : undefined;
           }
 
           // 识别
@@ -726,7 +741,7 @@ async function createPost(args: {
           const codeNode = u('code', { lang: lang }, response.data);
 
           const modifier = function (node, index, parent) {
-            if (node.type === result.code[i].node) {
+            if (node === result.code[i].node) {
               parent.children.splice(index, 1, codeNode);
               parent.children.splice(index, 0, commentNode);
               return index + 1;
@@ -745,12 +760,17 @@ async function createPost(args: {
   }
 
   const tl = onlyTitleAndLink(result.root);
+  console.log('onlyTitleAndLink', tl);
 
   console.log('onlyTitleAndLink', tl);
-  if (tl) {
+  if (tl.title) {
     result.title = tl.title;
     result.jump = tl.link;
-    result.body = `[${result.title}](${result.jump})`;
+    if (tl.noInlineCommonds) {
+      result.body = `[${result.title}](${result.jump})`;
+    } else {
+      result.body = remark().stringify(result.root as Root);
+    }
   } else {
     result.body = remark().stringify(result.root as Root);
   }
