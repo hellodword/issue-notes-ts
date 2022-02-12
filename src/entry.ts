@@ -1,9 +1,10 @@
-import * as core from '@actions/core';
+// import * as core from '@actions/core';
 import { Context } from '@actions/github/lib/context';
 import { GitHub } from '@actions/github/lib/utils';
-import * as glob from '@actions/glob';
-import * as io from '@actions/io';
-import * as exec from '@actions/exec';
+// import * as glob from '@actions/glob';
+// import * as io from '@actions/io';
+// import * as exec from '@actions/exec';
+import { context, getOctokit } from '@actions/github';
 
 import { Octokit } from '@octokit/rest';
 import type { RequestError } from '@octokit/request-error';
@@ -59,14 +60,24 @@ export const PREFIX = '1970-01-01';
 
 export const ARCHIVE_ENGINES = ['ArchiveBox', 'cairn', 'obelisk', 'rivet'];
 
-export async function convertEntry(args: {
-  context: Context;
-  github: InstanceType<typeof GitHub>;
-  core?: typeof core;
-  exec?: typeof exec;
-  glob?: typeof glob;
-  io?: typeof io;
+function prepareArgs(args: {
+  context?: Context;
+  github?: InstanceType<typeof GitHub>;
 }) {
+  if (!args.context) {
+    args.context = context;
+  }
+  if (!args.github) {
+    args.github = getOctokit(process.env['GITHUB_TOKEN'] || '');
+  }
+}
+
+export async function convertEntry(args: {
+  context?: Context;
+  github?: InstanceType<typeof GitHub>;
+}) {
+  prepareArgs(args);
+
   console.log('context.eventName', args.context.eventName);
   console.log('context.payload.action', args.context.payload.action);
 
@@ -953,16 +964,14 @@ archives: ${buildArchiveHeader(result.archive[i].filename)}
 }
 
 export async function archiveEntry(args: {
-  context: Context;
-  github: InstanceType<typeof GitHub>;
-  core?: typeof core;
-  exec?: typeof exec;
-  glob?: typeof glob;
-  io?: typeof io;
+  context?: Context;
+  github?: InstanceType<typeof GitHub>;
   engine: string;
   filename: string;
   link: string;
 }) {
+  prepareArgs(args);
+
   const issueNumber = args.context.payload.issue.number;
   const issueCommentId =
     args.context.eventName === 'issues' ? 0 : args.context.payload.comment.id;
