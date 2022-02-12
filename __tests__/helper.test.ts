@@ -1,13 +1,15 @@
-import { parsePath, dateFormat } from '../src/helper';
+import { parsePath, dateFormat, isURL } from '../src/helper';
 
-describe('parsePath function', () => {
-  const name = './a/b/c.d';
+describe('isURL', () => {
+  expect(isURL.test('http://a')).toBe(true);
+});
 
-  const result = parsePath(name);
-
-  // Assert result
-  it('parsePath `{name}`', () => {
-    expect(result).toStrictEqual(['a', 'b', 'c.d']);
+describe('parsePath', () => {
+  test('correct', () => {
+    expect(parsePath('./a/b/c.d')).toStrictEqual(['a', 'b', 'c.d']);
+  });
+  test('empty', () => {
+    expect(parsePath('')).toStrictEqual([]);
   });
 });
 

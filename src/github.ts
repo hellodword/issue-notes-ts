@@ -2,7 +2,7 @@ import { Octokit } from '@octokit/rest';
 import axios from 'axios';
 import { parsePath } from './helper';
 
-export async function getPathSha(args: {
+async function getPathSha(args: {
   rest: Octokit;
   owner: string;
   repo: string;
@@ -61,7 +61,7 @@ export async function getPathSha(args: {
   return Promise.resolve(result);
 }
 
-export async function isCommentMinimized(args: {
+async function isCommentMinimized(args: {
   owner: string;
   repo: string;
   issueNumber: string | number;
@@ -86,3 +86,5 @@ export async function isCommentMinimized(args: {
       return Promise.reject(error);
     });
 }
+
+export { isCommentMinimized, getPathSha };

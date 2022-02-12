@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["vitest/globals"],
     "target": "es2020",
     "module": "ES2020",
     "lib": ["esnext"],
@@ -23,6 +24,7 @@
   "include": [
     "src/**/*",
     "__tests__/*.ts",
-    "__mocks__/*"
-  ]
+    "__mocks__/**/*.ts"
+  ],
+  "exclude": ["vite.config.ts"]
 }

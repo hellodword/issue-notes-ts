@@ -15,7 +15,8 @@ import { Parent } from 'unist-util-visit-parents';
 // import { inspect } from 'unist-util-inspect';
 import { visit as oriVisit } from 'unist-util-visit';
 import { BuildVisitor } from 'unist-util-visit/complex-types';
-import { remark } from 'remark';
+// import { remark } from 'remark';
+// import { oriVisit } from './wrap';
 
 // import { split } from 'shlex';
 // import yargs from 'yargs';
@@ -43,14 +44,14 @@ import { remark } from 'remark';
 //     });
 // })();
 
-console.dir(remark().parse('![abcdefg](http://a.b)'), { depth: null });
+// console.dir(remark().parse('![abcdefg](http://a.b)'), { depth: null });
 
 // fix intellisense bug
-export function visit(tree: Node, visitor: BuildVisitor, reverse?: boolean) {
+function visit(tree: Node, visitor: BuildVisitor, reverse?: boolean) {
   oriVisit(tree, visitor, reverse);
 }
 
-export function isInlineCommand(_node: Node) {
+function isInlineCommand(_node: Node) {
   const node = _node as Parent;
   return (
     !!node.children &&
@@ -84,7 +85,7 @@ export function isInlineCommand(_node: Node) {
   );
 }
 
-export function getInlineCommand(tree: Node) {
+function getInlineCommand(tree: Node) {
   const result = [];
   const paragraph = (
     (((tree as Parent).children[0] as Parent).children[0] as Parent)
@@ -99,14 +100,14 @@ export function getInlineCommand(tree: Node) {
   return result;
 }
 
-export function markChildren(tree: Node, key: string) {
+function markChildren(tree: Node, key: string) {
   (tree as any)[key] = true;
   visit(tree, (node: any) => {
     node[key] = true;
   });
 }
 
-export function only(tree: Node, key: string) {
+function only(tree: Node, key: string) {
   let result = true;
   visit(tree, (node: any) => {
     if (node.type !== 'root' && node.type !== 'paragraph' && !node[key]) {
@@ -116,7 +117,7 @@ export function only(tree: Node, key: string) {
   return result;
 }
 
-export function onlyTitleAndLink(tree: Node) {
+function onlyTitleAndLink(tree: Node) {
   const texts: string[] = [];
   visit(tree, (node) => {
     if ((node as any).isInlineCommand) {
@@ -152,7 +153,7 @@ export function onlyTitleAndLink(tree: Node) {
   return undefined;
 }
 
-export function getText(tree: Node) {
+function getText(tree: Node) {
   let result = '';
   visit(tree, (node) => {
     if ((!result || result === '') && node.type === 'text') {
@@ -162,7 +163,7 @@ export function getText(tree: Node) {
   return result;
 }
 
-// export function parseMarkdown(markdown: string) {
+// function parseMarkdown(markdown: string) {
 //   const tree: Node = remark().parse(markdown);
 
 //   visit(tree, (node) => {
@@ -252,7 +253,7 @@ export function getText(tree: Node) {
 //   engine: string[];
 // };
 
-// export function parseMarkdown(markdown: string): Map<string, MyArgs> {
+// function parseMarkdown(markdown: string): Map<string, MyArgs> {
 //   const result: parseMarkdownResult = {};
 //   result.tree = remark().parse(markdown);
 
@@ -439,3 +440,13 @@ export function getText(tree: Node) {
 
 //   return result;
 // }
+
+export {
+  isInlineCommand,
+  onlyTitleAndLink,
+  markChildren,
+  getInlineCommand,
+  getText,
+  only,
+  visit,
+};

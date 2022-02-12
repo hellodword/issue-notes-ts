@@ -1,5 +1,6 @@
 {
   "name": "issue-notes-ts",
+  "type": "module",
   "version": "0.0.0",
   "engines": {
     "node": ">= 16.13 <17"
@@ -8,12 +9,14 @@
     "clean": "rimraf coverage build tmp",
     "prebuild": "npm run lint && npm run format",
     "build": "rollup -c rollup.config.js",
-    "build:esm": "rollup -c rollup.config.esm.js",
     "build:min": "rollup -c rollup.config.min.js",
     "build:tsc": "tsc -p tsconfig.release.json",
     "lint": "eslint . --ext .ts,.tsx --fix",
-    "test": "cross-env NODE_OPTIONS= jest --coverage --detectOpenHandles",
-    "format": "prettier --write '**/*.ts'"
+    "test": "vitest --coverage",
+    "test:jest": "cross-env NODE_OPTIONS='--experimental-specifier-resolution=node --loader ts-node/esm --experimental-vm-modules' jest --coverage --detectOpenHandles",
+    "format": "prettier --write '**/*.ts'",
+    "start": "cross-env NODE_OPTIONS='--experimental-specifier-resolution=node --loader ts-node/esm' ts-node src/index.ts"
+
   },
   "license": "Apache-2.0",
   "dependencies": {
@@ -21,6 +24,7 @@
     "@actions/exec": "^1.1.0",
     "@actions/github": "^5.0.0",
     "@actions/glob": "^0.2.0",
+    "@babel/runtime": "^7.17.2",
     "@octokit/rest": "^18.12.0",
     "@vscode/vscode-languagedetection": "^1.0.21",
     "axios": "^0.25.0",
@@ -41,32 +45,36 @@
     "yargs": "^16.2.0"
   },
   "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.17.0",
+    "@babel/preset-typescript": "^7.16.7",
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.1.3",
     "@rollup/plugin-typescript": "^8.3.0",
     "@types/content-disposition": "^0.5.4",
-    "@types/jest": "~27.0.2",
     "@types/moment-timezone": "^0.5.30",
     "@types/node": "~16.11.6",
     "@typescript-eslint/eslint-plugin": "~5.7.0",
     "@typescript-eslint/parser": "~5.7.0",
+    "@vue/eslint-config-typescript": "^10.0.0",
+    "c8": "^7.11.0",
     "cross-env": "^7.0.3",
     "eslint": "~8.4.1",
     "eslint-config-prettier": "~8.3.0",
-    "eslint-plugin-jest": "~25.3.0",
-    "jest": "~27.4.4",
-    "jest-mock-axios": "^4.5.0",
+    "esm": "^3.2.25",
+    "mocha": "^9.2.0",
     "prettier": "~2.5.1",
     "rimraf": "~3.0.2",
     "rollup": "^2.67.1",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-terser": "^7.0.2",
-    "ts-jest": "~27.1.1",
+    "tinyspy": "^0.2.10",
     "ts-node": "^10.5.0",
     "tslib": "~2.3.1",
     "tsutils": "~3.21.0",
-    "typescript": "~4.5.3"
+    "typescript": "~4.5.3",
+    "vite": "^2.8.1",
+    "vitest": "^0.3.4"
   },
   "volta": {
     "node": "16.13.0"

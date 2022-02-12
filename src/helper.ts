@@ -1,6 +1,6 @@
 import { moment } from './wrap';
 
-export function parsePath(p: string) {
+function parsePath(p: string) {
   let result: string[];
   result = p.split('/');
   if (result.length > 0) {
@@ -15,10 +15,12 @@ export function parsePath(p: string) {
   return result;
 }
 
-export function dateFormat(date: Date, timezone?: string) {
+function dateFormat(date: Date, timezone?: string) {
   return moment(date)
     .tz(timezone ? timezone : 'America/Los_Angeles')
     .format('YYYY-MM-DD');
 }
 
-export const isURL = /^https?:\/\/[^\r\n]+$/;
+const isURL = /^https?:\/\/[^\r\n]+$/;
+
+export { parsePath, dateFormat, isURL };

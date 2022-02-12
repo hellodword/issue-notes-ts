@@ -16,7 +16,7 @@ import yargs from 'yargs';
 
 import axios from 'axios';
 
-import { moment, contentDisposition } from './wrap';
+import { contentDisposition } from './wrap';
 import { remark } from 'remark';
 
 import {
@@ -26,10 +26,10 @@ import {
   getInlineCommand,
   getText,
   only,
+  visit,
 } from './parse';
 
-import { dateFormat, isURL } from './helper';
-import { visit } from './parse';
+import { isURL } from './helper';
 
 import { sanitize } from 'string-sanitizer';
 
@@ -39,11 +39,11 @@ import { Node } from 'unist';
 import { Parent } from 'unist-util-visit-parents';
 
 import { u } from 'unist-builder';
-import { remove } from 'unist-util-remove';
+// import { remove } from 'unist-util-remove';
 import { modifyChildren } from 'unist-util-modify-children';
-import { inspect } from 'unist-util-inspect';
-import { visit as oriVisit } from 'unist-util-visit';
-import { BuildVisitor } from 'unist-util-visit/complex-types';
+// import { inspect } from 'unist-util-inspect';
+// import { visit as oriVisit } from 'unist-util-visit';
+// import { BuildVisitor } from 'unist-util-visit/complex-types';
 import { detectFile, detectLanguage } from './detect';
 import { sha1 } from './crypto';
 
@@ -58,29 +58,6 @@ export const BASE_PATH_CODE = 'assets/code';
 export const PREFIX = '1970-01-01';
 
 export const ARCHIVE_ENGINES = ['ArchiveBox', 'cairn', 'obelisk', 'rivet'];
-
-export async function entry(args: {
-  context: Context;
-  github: InstanceType<typeof GitHub>;
-  core?: typeof core;
-  exec?: typeof exec;
-  glob?: typeof glob;
-  io?: typeof io;
-}) {
-  console.log(args.context.repo);
-  console.log('context.eventName', args.context.eventName);
-  console.log('context.payload.action', args.context.payload.action);
-
-  console.log('remark', remark());
-  console.log('visit', visit);
-
-  console.log(dateFormat(new Date()));
-  console.log(sanitize('https://a.b/c.d'));
-  console.log(split('curl --op'));
-  console.log(yargs(split('curl --op')).parse());
-  console.log(contentDisposition('attachment; filename="filename.jpg"'));
-  console.log(moment(new Date()));
-}
 
 export async function convertEntry(args: {
   context: Context;
