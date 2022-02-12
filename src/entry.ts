@@ -60,14 +60,15 @@ export const PREFIX = '1970-01-01';
 
 export const ARCHIVE_ENGINES = ['ArchiveBox', 'cairn', 'obelisk', 'rivet'];
 
+let isOfficialActions = true;
+
 function prepareArgs(args: {
   context?: Context;
   github?: InstanceType<typeof GitHub>;
 }) {
   if (!args.context) {
+    isOfficialActions = false;
     args.context = context;
-  }
-  if (!args.github) {
     args.github = getOctokit(process.env['GITHUB_TOKEN'] || '');
   }
 }
@@ -957,6 +958,16 @@ archives: ${buildArchiveHeader(result.archive[i].filename)}
     }
   }
 
+  // 自己调用 node run
+  if (!isOfficialActions) {
+    fs.writeFileSync(
+      './output.json',
+      JSON.stringify({
+        archive: result.archive,
+      }),
+    );
+  }
+
   // 传回 github actions 进行 archive
   return {
     archive: result.archive,
@@ -967,21 +978,24 @@ export async function archiveEntry(args: {
   context?: Context;
   github?: InstanceType<typeof GitHub>;
   engine: string;
-  filename: string;
   link: string;
 }) {
   prepareArgs(args);
+
+  const filename = sanitize(args.link);
+
+  console.log('archiving', args.engine, args.link, filename);
 
   const issueNumber = args.context.payload.issue.number;
   const issueCommentId =
     args.context.eventName === 'issues' ? 0 : args.context.payload.comment.id;
 
-  console.log('archiveEntry', args.engine, args.filename);
+  console.log('archiveEntry', args.engine, filename);
   const contentArchive = fs.readFileSync(
     `./archives/${args.engine}/index.html`,
   );
 
-  const pathArchive = `${BASE_PATH_ARCHIVES}/${args.engine}/${args.filename}.html`;
+  const pathArchive = `${BASE_PATH_ARCHIVES}/${args.engine}/${filename}.html`;
 
   await getPathSha({
     rest: args.github.rest as Octokit,
@@ -997,9 +1011,9 @@ export async function archiveEntry(args: {
           repo: args.context.repo.repo,
           branch: BRANCH_NAME,
           path: pathArchive,
-          message: `${sha.sha ? 'update' : 'add'} archive[${args.engine}] ${
-            args.filename
-          }.html via github-actions${'\n\n'}${buildRawLink({
+          message: `${sha.sha ? 'update' : 'add'} archive[${
+            args.engine
+          }] ${filename}.html via github-actions${'\n\n'}${buildRawLink({
             owner: args.context.repo.owner,
             repo: args.context.repo.repo,
             issueNumber: issueNumber,

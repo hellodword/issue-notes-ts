@@ -16,7 +16,6 @@
     "test:jest": "cross-env NODE_OPTIONS='--experimental-specifier-resolution=node --loader ts-node/esm --experimental-vm-modules' jest --coverage --detectOpenHandles",
     "format": "prettier --write '**/*.ts'",
     "start": "cross-env NODE_OPTIONS='--experimental-specifier-resolution=node --loader ts-node/esm' ts-node src/index.ts"
-
   },
   "license": "Apache-2.0",
   "dependencies": {
@@ -54,6 +53,7 @@
     "@types/content-disposition": "^0.5.4",
     "@types/moment-timezone": "^0.5.30",
     "@types/node": "~16.11.6",
+    "@types/yargs": "^17.0.8",
     "@typescript-eslint/eslint-plugin": "~5.7.0",
     "@typescript-eslint/parser": "~5.7.0",
     "@vue/eslint-config-typescript": "^10.0.0",
