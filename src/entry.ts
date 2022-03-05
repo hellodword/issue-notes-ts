@@ -59,7 +59,7 @@ export const BASE_PATH_PICTURE = 'assets/img';
 export const BASE_PATH_CODE = 'assets/code';
 export const PREFIX = '1970-01-01';
 
-export const ARCHIVE_ENGINES = ['ArchiveBox', 'cairn', 'obelisk', 'rivet'];
+export const ARCHIVE_ENGINES = ['ArchiveBox', 'cairn', 'obelisk'];
 
 let isOfficialActions = true;
 
@@ -980,12 +980,36 @@ archives: ${buildArchiveHeader(result.archive[i].filename)}
 
   // 自己调用 node run
   if (!isOfficialActions) {
-    fs.writeFileSync(
-      './output.json',
-      JSON.stringify({
-        archive: result.archive,
-      }),
-    );
+    const output = { archive: [] };
+    if (result.archive) {
+      const links = {};
+      for (const i in result.archive) {
+        if (links[result.archive[i].link]) {
+          continue;
+        }
+        links[result.archive[i].link] = true;
+
+        if (result.archive[i].engine.includes('all')) {
+          result.archive[i].engine = ['all'];
+        }
+
+        const engine = {};
+        for (const j in result.archive[i].engine) {
+          if (engine[result.archive[i].engine[j]]) {
+            continue;
+          }
+          engine[result.archive[i].engine[j]] = true;
+          output.archive.push({
+            link: result.archive[i].link,
+            title: result.archive[i].title,
+            author: result.archive[i].author,
+            date: result.archive[i].date,
+            engine: result.archive[i].engine[j],
+          });
+        }
+      }
+    }
+    fs.writeFileSync('./output.json', JSON.stringify(output));
   }
 
   // 传回 github actions 进行 archive
